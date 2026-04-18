@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus - Local Knowledge Base</title>
+
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Vis-Network for the Graph/Spiderweb view -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <!-- Tailwind Configuration for typography plugin (needed for markdown styling) -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+
+    <style>
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1f2937;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+        }
+
+        /* Make the vis-network graph fill its container */
+        #graph-container canvas {
+            outline: none;
+        }
+
+        /* Editor specific styles to prevent outline */
+        #editor:focus {
+            outline: none;
+        }
+
+        /* --- THEME SYSTEM --- */
+        :root[data-theme="light"] {
+            --bg-900: #f9fafb;
+            --bg-800: #ffffff;
+            --bg-700: #f3f4f6;
+            --border-color: #e5e7eb;
+            --text-100: #111827;
+            --text-300: #374151;
+            --text-400: #4b5563;
+            --text-500: #6b7280;
+            --graph-node-bg: #93c5fd;
+            --graph-node-border: #3b82f6;
+            --graph-text: #111827;
+            --graph-ghost-bg: #e5e7eb;
+            --graph-ghost-text: #6b7280;
+        }
+        :root[data-theme="sepia"] {
+            --bg-900: #f4ecd8;
+            --bg-800: #fdf6e3;
+            --bg-700: #e6d5b8;
+            --border-color: #d5c4a1;
+            --text-100: #4a3e2e;
+            --text-300: #5c4b37;
+            --text-400: #7a6a55;
+            --text-500: #928374;
+            --graph-node-bg: #fcb97d;
+            --graph-node-border: #d97736;
+            --graph-text: #4a3e2e;
+            --graph-ghost-bg: #e6d5b8;
+            --graph-ghost-text: #928374;
+        }
+
+        /* Override Tailwind gray colors when a theme is active */
+        [data-theme]:not([data-theme="dark"]) .bg-gray-900,
+        [data-theme]:not([data-theme="dark"]) .bg-gray-950 { background-color: var(--bg-900) !important; }
+        [data-theme]:not([data-theme="dark"]) .bg-gray-800 { background-color: var(--bg-800) !important; }
+        [data-theme]:not([data-theme="dark"]) .bg-gray-700 { background-color: var(--bg-700) !important; }
+        [data-theme]:not([data-theme="dark"]) .hover\:bg-gray-800:hover { background-color: var(--bg-800) !important; }
+        [data-theme]:not([data-theme="dark"]) .hover\:bg-gray-700:hover { background-color: var(--bg-700) !important; }
+
+        [data-theme]:not([data-theme="dark"]) .border-gray-700,
+        [data-theme]:not([data-theme="dark"]) .border-gray-600 { border-color: var(--border-color) !important; }
+        [data-theme]:not([data-theme="dark"]) .focus\:border-gray-600:focus { border-color: var(--text-400) !important; }
+
+        [data-theme]:not([data-theme="dark"]) .text-gray-100,
+        [data-theme]:not([data-theme="dark"]) .text-white,
+        [data-theme]:not([data-theme="dark"]) .text-gray-200 { color: var(--text-100) !important; }
+
+        [data-theme]:not([data-theme="dark"]) .text-gray-300 { color: var(--text-300) !important; }
+        [data-theme]:not([data-theme="dark"]) .text-gray-400 { color: var(--text-400) !important; }
+        [data-theme]:not([data-theme="dark"]) .text-gray-500 { color: var(--text-500) !important; }
+
+        /* Override Markdown Preview variables */
+        [data-theme]:not([data-theme="dark"]) .prose-invert {
+            --tw-prose-body: var(--text-300);
+            --tw-prose-headings: var(--text-100);
+            --tw-prose-lead: var(--text-400);
+            --tw-prose-links: #2563eb;
+            --tw-prose-bold: var(--text-100);
+            --tw-prose-counters: var(--text-400);
+            --tw-prose-bullets: var(--text-400);
+            --tw-prose-hr: var(--border-color);
+            --tw-prose-quotes: var(--text-400);
+            --tw-prose-quote-borders: var(--border-color);
+            --tw-prose-captions: var(--text-500);
+            --tw-prose-code: var(--text-100);
+            --tw-prose-pre-code: var(--text-300);
+            --tw-prose-pre-bg: var(--bg-800);
+            --tw-prose-th-borders: var(--border-color);
+            --tw-prose-td-borders: var(--border-color);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 h-screen w-screen overflow-hidden flex font-sans">
+
+    <!-- Mobile Sidebar Toggle -->
+    <button id="mobile-menu-btn" onclick="toggleSidebar()" class="md:hidden fixed top-4 left-4 z-50 p-2 bg-gray-800 rounded-md shadow-lg border border-gray-700 hover:bg-gray-700">
+        <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+    </button>
+
+    <!-- Sidebar (List of Notes) -->
+    <aside id="sidebar" class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col absolute md:relative z-40 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
+        <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 pt-16 md:pt-4">
+            <h1 class="text-xl font-bold text-gray-100 tracking-wider">NEXUS</h1>
+            <div class="flex gap-1">
+                <button onclick="createNewFolder()" class="p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-200 transition-colors" title="New Folder">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"></path></svg>
+                </button>
+                <button onclick="createNewNote()" class="p-1.5 bg-blue-600 hover:bg-blue-500 rounded text-white transition-colors" title="New Note">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="p-3">
+            <div class="relative">
+                <input type="text" id="search-input" onkeyup="filterNotes()" placeholder="Search notes..." class="w-full bg-gray-900 text-sm text-gray-200 border border-gray-700 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 transition-colors">
+            </div>
+        </div>
+
+        <ul id="notes-list" class="flex-1 overflow-y-auto p-2 space-y-1">
+            <!-- Notes will be injected here via JS -->
+        </ul>
+
+        <div class="p-4 text-xs text-gray-500 border-t border-gray-700 text-center">
+            Saved locally via IndexedDB
+        </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 flex flex-col h-full bg-gray-900 relative">
+
+        <!-- Top Toolbar -->
+        <header class="h-14 border-b border-gray-700 flex items-center justify-between px-4 lg:px-6 pl-16 md:pl-6 bg-gray-900 z-10">
+            <div class="flex-1 max-w-2xl flex items-center gap-3">
+                <select id="note-folder-select" onchange="triggerSave()" class="hidden md:block bg-gray-800 text-gray-300 text-xs rounded border border-gray-700 px-2 py-1.5 max-w-[120px] focus:outline-none truncate cursor-pointer" title="Folder">
+                    <option value="">No Folder</option>
+                </select>
+                <input type="text" id="note-title" oninput="triggerSave()" placeholder="Note Title" class="w-full bg-transparent text-xl font-semibold text-gray-100 placeholder-gray-600 focus:outline-none border-b border-transparent focus:border-gray-600 px-1 py-1">
+            </div>
+
+            <div class="flex items-center space-x-2 ml-4">
+                <!-- View Toggles -->
+                <div class="flex bg-gray-800 rounded-md p-1 border border-gray-700">
+                    <button id="btn-edit" onclick="switchView('edit')" class="px-3 py-1.5 text-sm rounded-md bg-gray-700 text-gray-100 font-medium transition-colors">Edit</button>
+                    <button id="btn-preview" onclick="switchView('preview')" class="px-3 py-1.5 text-sm rounded-md text-gray-400 hover:text-gray-200 transition-colors">Preview</button>
+                    <button id="btn-graph" onclick="switchView('graph')" class="px-3 py-1.5 text-sm rounded-md text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                        Graph
+                    </button>
+                </div>
+
+                <button onclick="deleteCurrentNote()" class="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-md hover:bg-gray-800" title="Delete Note">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="relative ml-1">
+                    <button id="menu-btn" onclick="toggleMenu()" class="p-2 text-gray-500 hover:text-white transition-colors rounded-md hover:bg-gray-800" title="Menu">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
+                    </button>
+                    <div id="dropdown-menu" class="hidden absolute right-0 mt-2 w-48 bg-gray-800 rounded-md shadow-xl border border-gray-700 z-50">
+                        <a href="#" onclick="openModal('modal-how-to')" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white rounded-t-md">How to Use</a>
+                        <a href="#" onclick="openModal('modal-settings')" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">Settings</a>
+                        <div class="border-t border-gray-700 my-1"></div>
+                        <a href="#" onclick="openModal('modal-about')" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white rounded-b-md">About</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content Areas -->
+        <div class="flex-1 overflow-hidden relative">
+
+            <!-- Editor View -->
+            <div id="view-edit" class="absolute inset-0 h-full w-full flex flex-col bg-gray-900">
+
+                <!-- Formatting Toolbar -->
+                <div class="h-10 bg-gray-800 border-b border-gray-700 flex items-center px-4 gap-1 md:gap-2 overflow-x-auto text-gray-300 select-none shrink-0">
+                    <button onclick="insertFormat('**', '**')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Bold"><span class="font-bold font-serif">B</span></button>
+                    <button onclick="insertFormat('_', '_')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Italic"><span class="italic font-serif">I</span></button>
+                    <button onclick="insertFormat('~~', '~~')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Strikethrough"><span class="line-through font-serif text-sm">S</span></button>
+
+                    <div class="w-px h-5 bg-gray-600 mx-1"></div>
+
+                    <button onclick="insertFormat('# ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 1"><span class="font-bold text-xs">H1</span></button>
+                    <button onclick="insertFormat('## ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 2"><span class="font-bold text-xs">H2</span></button>
+                    <button onclick="insertFormat('### ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 3"><span class="font-bold text-xs">H3</span></button>
+
+                    <div class="w-px h-5 bg-gray-600 mx-1"></div>
+
+                    <button onclick="insertFormat('- ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Bullet List">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg>
+                    </button>
+                    <button onclick="insertFormat('1. ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Numbered List"><span class="font-bold text-xs">1.</span></button>
+                    <button onclick="insertFormat('> ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Quote">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
+                    </button>
+
+                    <div class="w-px h-5 bg-gray-600 mx-1"></div>
+
+                    <button onclick="insertFormat('`', '`')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Inline Code">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                    </button>
+                    <button onclick="insertFormat('[', '](url)')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Link">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path></svg>
+                    </button>
+                    <button onclick="insertFormat('[[', ']]')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Wiki Link"><span class="font-bold text-xs">[[ ]]</span></button>
+                </div>
+
+                <textarea id="editor" oninput="triggerSave()" class="flex-1 w-full bg-gray-900 text-gray-300 p-6 md:p-8 resize-none text-lg leading-relaxed font-mono focus:outline-none" placeholder="Start typing here... Use [[brackets]] to link to other pages."></textarea>
+            </div>
+
+            <!-- Preview View -->
+            <div id="view-preview" class="absolute inset-0 h-full w-full hidden overflow-y-auto p-6 md:p-8 bg-gray-900">
+                <div id="preview-content" class="prose prose-invert prose-blue max-w-3xl mx-auto">
+                    <!-- Markdown will render here -->
+                </div>
+            </div>
+
+            <!-- Graph View -->
+            <div id="view-graph" class="absolute inset-0 h-full w-full hidden bg-gray-950">
+                <div id="graph-container" class="w-full h-full"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Modals -->
+    <div id="modal-how-to" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full border border-gray-700 mx-4">
+            <h2 class="text-xl font-bold text-white mb-4">How to Use Nexus</h2>
+            <ul class="text-gray-300 space-y-3 mb-6 list-disc pl-5 text-sm">
+                <li>Write your notes using <strong>Markdown</strong> formatting.</li>
+                <li>Link concepts together using double brackets: <code class="bg-gray-900 px-1 rounded text-blue-400">[[Ideas]]</code> or <code class="bg-gray-900 px-1 rounded text-blue-400">[[Projects]]</code>.</li>
+                <li>Switch to the <strong>Preview</strong> tab to see formatted text and click your links.</li>
+                <li>Switch to the <strong>Graph</strong> tab to explore your spiderweb map of connections.</li>
+                <li>Ghost nodes (gray) on the graph are pages you've linked to but haven't created yet. Double-click them to automatically create the page.</li>
+                <li>Everything saves automatically to your browser via IndexedDB.</li>
+            </ul>
+            <div class="flex justify-end">
+                <button onclick="closeModal('modal-how-to')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition">Got it</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-settings" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4">
+            <h2 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Settings
+            </h2>
+
+            <div class="space-y-4 mb-6">
+                <!-- Theme Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Theme</label>
+                    <select id="theme-select" onchange="changeTheme(this.value)" class="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="dark">Dark (Default)</option>
+                        <option value="light">Light</option>
+                        <option value="sepia">Sepia</option>
+                    </select>
+                </div>
+
+                <!-- Graph Mode Selection -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Graph Link Indicator</label>
+                    <select id="graph-mode-select" onchange="changeGraphMode(this.value)" class="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 transition-colors">
+                        <option value="size">Increase Size (Default)</option>
+                        <option value="number">Show Number</option>
+                        <option value="none">None</option>
+                    </select>
+                </div>
+
+                <div class="border-t border-gray-700 my-4"></div>
+
+                <!-- Data Management -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Data Management</label>
+                    <div class="flex gap-2">
+                        <button onclick="exportData()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded text-sm transition flex justify-center items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Export
+                        </button>
+                        <button onclick="document.getElementById('import-file').click()" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-3 rounded text-sm transition flex justify-center items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                            Import
+                        </button>
+                        <input type="file" id="import-file" class="hidden" accept=".json" onchange="importData(event)">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 leading-relaxed">Export your notes to a JSON file. Importing a file will merge those notes into your existing ones.</p>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button onclick="closeModal('modal-settings')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-about" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4">
+            <h2 class="text-xl font-bold text-white mb-4">About Nexus</h2>
+            <p class="text-gray-300 mb-6 text-sm">Nexus is a local, private knowledge base running entirely in your browser without requiring external servers.</p>
+            <div class="flex justify-end">
+                <button onclick="closeModal('modal-about')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-folder" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+        <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4">
+            <h2 class="text-xl font-bold text-white mb-4">Edit Folder</h2>
+            <input type="hidden" id="folder-id">
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Name</label>
+                    <input type="text" id="folder-name" class="w-full bg-gray-900 border border-gray-700 text-gray-100 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Graph Node Color</label>
+                    <div class="flex items-center gap-3">
+                        <input type="color" id="folder-color" oninput="document.getElementById('folder-color-hex').textContent = this.value" class="w-10 h-10 rounded border-0 bg-transparent cursor-pointer p-0">
+                        <span id="folder-color-hex" class="text-gray-400 text-sm font-mono uppercase"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-between items-center mt-6">
+                <button onclick="deleteFolder()" class="px-3 py-1.5 bg-red-900 bg-opacity-40 hover:bg-red-600 text-red-300 hover:text-white rounded text-sm transition">Delete Folder</button>
+                <div class="flex gap-2">
+                    <button onclick="closeModal('modal-folder')" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition">Cancel</button>
+                    <button onclick="saveFolderModal()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           INDEXEDDB WRAPPER FOR LOCAL STORAGE
+           ========================================= */
+        const DB_NAME = 'NexusKnowledgeBase';
+        const DB_VERSION = 2; // Upgraded to v2 for folders
+        const STORE_NAME = 'notes';
+        const FOLDER_STORE = 'folders';
+        let db;
+
+        const initDB = () => new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = (e) => {
+                console.error("IndexedDB error:", e);
+                reject("Could not open database");
+            };
+            request.onupgradeneeded = (e) => {
+                const database = e.target.result;
+                if (!database.objectStoreNames.contains(STORE_NAME)) {
+                    database.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                }
+                if (!database.objectStoreNames.contains(FOLDER_STORE)) {
+                    database.createObjectStore(FOLDER_STORE, { keyPath: 'id' });
+                }
+            };
+            request.onsuccess = (e) => {
+                db = e.target.result;
+                resolve();
+            };
+        });
+
+        const getAllNotes = () => new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readonly');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        const saveNoteDB = (note) => new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.put(note);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+
+        const deleteNoteDB = (id) => new Promise((resolve, reject) => {
+            const tx = db.transaction(STORE_NAME, 'readwrite');
+            const store = tx.objectStore(STORE_NAME);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+
+        const getAllFolders = () => new Promise((resolve, reject) => {
+            const tx = db.transaction(FOLDER_STORE, 'readonly');
+            const store = tx.objectStore(FOLDER_STORE);
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+
+        const saveFolderDB = (folder) => new Promise((resolve, reject) => {
+            const tx = db.transaction(FOLDER_STORE, 'readwrite');
+            const store = tx.objectStore(FOLDER_STORE);
+            const request = store.put(folder);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+
+        const deleteFolderDB = (id) => new Promise((resolve, reject) => {
+            const tx = db.transaction(FOLDER_STORE, 'readwrite');
+            const store = tx.objectStore(FOLDER_STORE);
+            const request = store.delete(id);
+            request.onsuccess = () => resolve();
+            request.onerror = () => reject(request.error);
+        });
+
+        /* =========================================
+           APPLICATION STATE & LOGIC
+           ========================================= */
+        let notes = [];
+        let folders = [];
+        let currentNoteId = null;
+        let saveTimeout = null;
+        let network = null; // Vis-network instance
+
+        // Elements
+        const elNotesList = document.getElementById('notes-list');
+        const elNoteTitle = document.getElementById('note-title');
+        const elEditor = document.getElementById('editor');
+        const elPreviewContent = document.getElementById('preview-content');
+
+        // Initialize App
+        async function initApp() {
+            try {
+                loadSettings();
+                await initDB();
+                notes = await getAllNotes();
+                folders = await getAllFolders();
+
+                // Sort notes by updated time descending
+                notes.sort((a, b) => b.updatedAt - a.updatedAt);
+
+                if (notes.length === 0) {
+                    createDefaultNote();
+                } else {
+                    updateFolderSelect();
+                    renderSidebar();
+                    openNote(notes[0].id);
+                }
+            } catch (err) {
+                console.error("Initialization failed:", err);
+                // Fallback UI or error handling could go here
+            }
+        }
+
+        function createDefaultNote() {
+            const defaultNote = {
+                id: Date.now().toString(),
+                title: "Welcome to Nexus",
+                folderId: null,
+                content: "# Welcome to Nexus 🪐\n\nThis is your local, private knowledge base.\n\nOpen the **Menu** (the three dots icon in the top right corner) and click **How to Use** to learn more about Markdown, linking pages, and the graph view.",
+                updatedAt: Date.now()
+            };
+            notes.push(defaultNote);
+            saveNoteDB(defaultNote);
+            updateFolderSelect();
+            renderSidebar();
+            openNote(defaultNote.id);
+        }
+
+        // Sidebar Rendering
+        function renderSidebar(filterText = '') {
+            elNotesList.innerHTML = '';
+
+            const sortedNotes = [...notes].sort((a, b) => b.updatedAt - a.updatedAt);
+
+            // Helper function to create note items (draggable)
+            const createNoteItem = (note) => {
+                const li = document.createElement('li');
+                const isSelected = note.id === currentNoteId;
+
+                li.className = `px-3 py-1.5 rounded-md cursor-pointer truncate transition-colors text-sm border-l-2 ${isSelected ? 'bg-blue-600 text-white border-blue-400' : 'text-gray-300 hover:bg-gray-700 hover:text-white border-transparent'}`;
+                li.textContent = note.title || 'Untitled Note';
+                li.draggable = true;
+
+                // Drag start event
+                li.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', note.id);
+                    e.currentTarget.classList.add('opacity-50');
+                };
+                li.ondragend = (e) => {
+                    e.currentTarget.classList.remove('opacity-50');
+                };
+
+                li.onclick = (e) => {
+                    e.stopPropagation();
+                    openNote(note.id);
+                    if (window.innerWidth < 768) toggleSidebar();
+                };
+                return li;
+            };
+
+            // Group notes by folder
+            const notesByFolder = { unassigned: [] };
+            folders.forEach(f => notesByFolder[f.id] = []);
+
+            sortedNotes.forEach(note => {
+                if (filterText && !note.title.toLowerCase().includes(filterText.toLowerCase())) return;
+
+                if (note.folderId && notesByFolder[note.folderId]) {
+                    notesByFolder[note.folderId].push(note);
+                } else {
+                    notesByFolder.unassigned.push(note);
+                }
+            });
+
+            // Render folders
+            folders.forEach(folder => {
+                const folderWrapper = document.createElement('div');
+                folderWrapper.className = 'mb-3';
+
+                // Folder drop target events
+                folderWrapper.ondragover = (e) => { e.preventDefault(); folderWrapper.classList.add('bg-gray-700', 'bg-opacity-50', 'rounded'); };
+                folderWrapper.ondragleave = () => { folderWrapper.classList.remove('bg-gray-700', 'bg-opacity-50', 'rounded'); };
+                folderWrapper.ondrop = (e) => handleDropOnFolder(e, folder.id, folderWrapper);
+
+                const folderHeader = document.createElement('div');
+                folderHeader.className = 'flex items-center justify-between text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-2 group';
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'flex items-center gap-1.5 truncate';
+                titleSpan.innerHTML = `<span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${folder.color}"></span> ${folder.name}`;
+
+                const editBtn = document.createElement('button');
+                editBtn.className = 'hidden group-hover:block text-gray-400 hover:text-white p-0.5';
+                editBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
+                editBtn.onclick = () => openFolderModal(folder.id);
+
+                folderHeader.appendChild(titleSpan);
+                folderHeader.appendChild(editBtn);
+                folderWrapper.appendChild(folderHeader);
+
+                const ul = document.createElement('ul');
+                ul.className = 'space-y-0.5 ml-2 border-l border-gray-700 pl-2';
+                notesByFolder[folder.id].forEach(note => ul.appendChild(createNoteItem(note)));
+
+                if (notesByFolder[folder.id].length === 0) {
+                    const emptyLi = document.createElement('li');
+                    emptyLi.className = 'text-xs text-gray-600 italic px-3 py-1';
+                    emptyLi.textContent = 'Empty folder';
+                    ul.appendChild(emptyLi);
+                }
+
+                folderWrapper.appendChild(ul);
+                elNotesList.appendChild(folderWrapper);
+            });
+
+            // Render Unassigned Notes
+            if (notesByFolder.unassigned.length > 0 || folders.length > 0) {
+                const unassignedWrapper = document.createElement('div');
+
+                // Allow dropping back to unassigned
+                unassignedWrapper.ondragover = (e) => { e.preventDefault(); unassignedWrapper.classList.add('bg-gray-700', 'bg-opacity-50', 'rounded'); };
+                unassignedWrapper.ondragleave = () => { unassignedWrapper.classList.remove('bg-gray-700', 'bg-opacity-50', 'rounded'); };
+                unassignedWrapper.ondrop = (e) => handleDropOnFolder(e, null, unassignedWrapper);
+
+                if (folders.length > 0) {
+                    const header = document.createElement('div');
+                    header.className = 'text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-2 mt-4';
+                    header.textContent = 'Uncategorized';
+                    unassignedWrapper.appendChild(header);
+                }
+
+                const ul = document.createElement('ul');
+                ul.className = 'space-y-0.5';
+                notesByFolder.unassigned.forEach(note => ul.appendChild(createNoteItem(note)));
+
+                unassignedWrapper.appendChild(ul);
+                elNotesList.appendChild(unassignedWrapper);
+            }
+        }
+
+        async function handleDropOnFolder(e, folderId, element) {
+            e.preventDefault();
+            element.classList.remove('bg-gray-700', 'bg-opacity-50', 'rounded');
+            const noteId = e.dataTransfer.getData('text/plain');
+            if (!noteId) return;
+
+            const note = notes.find(n => n.id === noteId);
+            if (note && note.folderId !== folderId) {
+                note.folderId = folderId;
+                await saveNoteDB(note);
+                if (currentNoteId === noteId) {
+                    document.getElementById('note-folder-select').value = folderId || '';
+                }
+                renderSidebar();
+                if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
+            }
+        }
+
+        function filterNotes() {
+            const val = document.getElementById('search-input').value;
+            renderSidebar(val);
+        }
+
+        // Folder Management
+        function updateFolderSelect() {
+            const select = document.getElementById('note-folder-select');
+            select.innerHTML = '<option value="">No Folder</option>';
+            folders.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f.id;
+                opt.textContent = f.name;
+                select.appendChild(opt);
+            });
+
+            // Re-select current note's folder if any
+            if (currentNoteId) {
+                const currentNote = notes.find(n => n.id === currentNoteId);
+                if (currentNote) select.value = currentNote.folderId || '';
+            }
+        }
+
+        async function createNewFolder() {
+            const newFolder = {
+                id: 'folder_' + Date.now().toString(),
+                name: "New Folder",
+                color: "#8b5cf6" // default purple
+            };
+            folders.push(newFolder);
+            await saveFolderDB(newFolder);
+            updateFolderSelect();
+            renderSidebar();
+            openFolderModal(newFolder.id);
+        }
+
+        function openFolderModal(folderId) {
+            const folder = folders.find(f => f.id === folderId);
+            if (!folder) return;
+
+            document.getElementById('folder-id').value = folder.id;
+            document.getElementById('folder-name').value = folder.name;
+            document.getElementById('folder-color').value = folder.color;
+            document.getElementById('folder-color-hex').textContent = folder.color.toUpperCase();
+
+            openModal('modal-folder');
+        }
+
+        async function saveFolderModal() {
+            const id = document.getElementById('folder-id').value;
+            const folderIndex = folders.findIndex(f => f.id === id);
+            if (folderIndex === -1) return;
+
+            folders[folderIndex].name = document.getElementById('folder-name').value.trim() || 'Untitled Folder';
+            folders[folderIndex].color = document.getElementById('folder-color').value;
+
+            await saveFolderDB(folders[folderIndex]);
+            closeModal('modal-folder');
+
+            updateFolderSelect();
+            renderSidebar();
+            if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
+        }
+
+        async function deleteFolder() {
+            const id = document.getElementById('folder-id').value;
+            const confirmDelete = await customConfirm("Are you sure you want to delete this folder? (Notes inside will NOT be deleted)");
+            if (!confirmDelete) return;
+
+            await deleteFolderDB(id);
+            folders = folders.filter(f => f.id !== id);
+
+            // Unassign notes in this folder
+            for (let note of notes) {
+                if (note.folderId === id) {
+                    note.folderId = null;
+                    await saveNoteDB(note);
+                }
+            }
+
+            closeModal('modal-folder');
+            updateFolderSelect();
+            renderSidebar();
+            if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
+        }
+
+        // Note Management
+        async function createNewNote(title = "Untitled Note") {
+            const newNote = {
+                id: Date.now().toString(),
+                title: title,
+                content: `# ${title}\n`,
+                folderId: document.getElementById('note-folder-select').value || null,
+                updatedAt: Date.now()
+            };
+            notes.push(newNote);
+            await saveNoteDB(newNote);
+
+            // Clear search when creating new
+            document.getElementById('search-input').value = '';
+
+            renderSidebar();
+            openNote(newNote.id);
+            switchView('edit');
+            elEditor.focus();
+        }
+
+        function openNote(id) {
+            currentNoteId = id;
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            elNoteTitle.value = note.title;
+            elEditor.value = note.content;
+            document.getElementById('note-folder-select').value = note.folderId || '';
+
+            renderSidebar(); // Update active state
+            updatePreview(); // Ensure preview matches loaded text if we switch to it
+        }
+
+        function triggerSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveCurrentNote, 500); // 500ms debounce
+        }
+
+        async function saveCurrentNote() {
+            if (!currentNoteId) return;
+
+            const noteIndex = notes.findIndex(n => n.id === currentNoteId);
+            if (noteIndex === -1) return;
+
+            notes[noteIndex].title = elNoteTitle.value;
+            notes[noteIndex].content = elEditor.value;
+            notes[noteIndex].folderId = document.getElementById('note-folder-select').value || null;
+            notes[noteIndex].updatedAt = Date.now();
+
+            await saveNoteDB(notes[noteIndex]);
+
+            // Re-render sidebar to reflect title changes or sorting updates
+            const filterVal = document.getElementById('search-input').value;
+            renderSidebar(filterVal);
+            updatePreview();
+        }
+
+        async function deleteCurrentNote() {
+            if (!currentNoteId) return;
+
+            // Create a custom modern modal instead of standard confirm()
+            const confirmDelete = await customConfirm("Are you sure you want to delete this note?");
+            if (!confirmDelete) return;
+
+            await deleteNoteDB(currentNoteId);
+            notes = notes.filter(n => n.id !== currentNoteId);
+
+            if (notes.length > 0) {
+                openNote(notes[0].id);
+            } else {
+                createDefaultNote();
+            }
+        }
+
+        // Custom Confirm Dialog (To avoid browser alerts in iframes)
+        function customConfirm(message) {
+            return new Promise((resolve) => {
+                const overlay = document.createElement('div');
+                overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+
+                const box = document.createElement('div');
+                box.className = 'bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700';
+
+                const text = document.createElement('p');
+                text.className = 'text-gray-200 mb-6 text-center';
+                text.textContent = message;
+
+                const btnContainer = document.createElement('div');
+                btnContainer.className = 'flex justify-end gap-3';
+
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition';
+                cancelBtn.textContent = 'Cancel';
+                cancelBtn.onclick = () => { document.body.removeChild(overlay); resolve(false); };
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded transition';
+                confirmBtn.textContent = 'Delete';
+                confirmBtn.onclick = () => { document.body.removeChild(overlay); resolve(true); };
+
+                btnContainer.appendChild(cancelBtn);
+                btnContainer.appendChild(confirmBtn);
+                box.appendChild(text);
+                box.appendChild(btnContainer);
+                overlay.appendChild(box);
+                document.body.appendChild(overlay);
+            });
+        }
+
+        /* =========================================
+           WIKI LINKS & MARKDOWN PREVIEW
+           ========================================= */
+
+        // Handle clicking a [[Link]] inside the preview or graph
+        function handleWikiLink(event, targetTitle) {
+            if(event) event.preventDefault();
+
+            // Look for existing note with exact title (case insensitive)
+            const targetTitleLower = targetTitle.toLowerCase().trim();
+            const existingNote = notes.find(n => n.title.toLowerCase().trim() === targetTitleLower);
+
+            if (existingNote) {
+                openNote(existingNote.id);
+                switchView('preview'); // Keep in preview reading mode
+            } else {
+                // If it doesn't exist, create it
+                createNewNote(targetTitle);
+            }
+        }
+
+        function updatePreview() {
+            let rawText = elEditor.value;
+
+            // 1. Process wiki links: [[Title]]
+            // Replace [[something]] with a styled link that calls handleWikiLink
+            const processedText = rawText.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
+                // Check if note exists to color it differently
+                const exists = notes.some(n => n.title.toLowerCase().trim() === p1.toLowerCase().trim());
+                const colorClass = exists ? 'text-blue-400 hover:text-blue-300' : 'text-gray-400 hover:text-gray-300 border-b border-dashed border-gray-500';
+                return `<a href="#" onclick="handleWikiLink(event, '${p1}')" class="${colorClass} no-underline transition-colors cursor-pointer">[[${p1}]]</a>`;
+            });
+
+            // 2. Parse Markdown via Marked.js
+            elPreviewContent.innerHTML = marked.parse(processedText);
+        }
+
+        /* =========================================
+           GRAPH VIEW (SPIDERWEB)
+           ========================================= */
+        function renderGraph() {
+            const container = document.getElementById('graph-container');
+
+            // Get current theme colors from our CSS variables (fallback to dark mode defaults)
+            const style = getComputedStyle(document.documentElement);
+            const isCustomTheme = document.documentElement.hasAttribute('data-theme') && document.documentElement.getAttribute('data-theme') !== 'dark';
+
+            const defaultNodeBg = isCustomTheme ? style.getPropertyValue('--graph-node-bg').trim() : '#2563eb';
+            const defaultNodeBorder = isCustomTheme ? style.getPropertyValue('--graph-node-border').trim() : '#1d4ed8';
+            const nodeText = isCustomTheme ? style.getPropertyValue('--graph-text').trim() : '#ffffff';
+            const ghostBg = isCustomTheme ? style.getPropertyValue('--graph-ghost-bg').trim() : '#4b5563';
+            const ghostText = isCustomTheme ? style.getPropertyValue('--graph-ghost-text').trim() : '#9ca3af';
+            const edgeColor = isCustomTheme ? style.getPropertyValue('--text-400').trim() : 'rgba(156, 163, 175, 0.5)';
+
+            const graphMode = localStorage.getItem('nexus_graph_mode') || 'size';
+
+            const nodesData = [];
+            const edgesData = [];
+            const addedNodes = new Set();
+            const existingTitles = new Map();
+            const incomingCounts = new Map();
+            const ghostLabels = new Map();
+
+            // PASS 1: Extract all edges and count incoming links
+            notes.forEach(note => {
+                const sourceTitle = note.title.trim();
+                if (!sourceTitle) return;
+                const sourceId = sourceTitle.toLowerCase();
+                existingTitles.set(sourceId, note);
+
+                const regex = /\[\[(.*?)\]\]/g;
+                let match;
+                const seenTargetsInThisNote = new Set();
+                while ((match = regex.exec(note.content)) !== null) {
+                    const targetOriginal = match[1].trim();
+                    if (!targetOriginal) continue;
+                    const targetId = targetOriginal.toLowerCase();
+
+                    // Prevent duplicate edges from the same source to the same target
+                    if (!seenTargetsInThisNote.has(targetId)) {
+                        seenTargetsInThisNote.add(targetId);
+                        edgesData.push({
+                            from: sourceId,
+                            to: targetId,
+                            color: { color: edgeColor },
+                            arrows: 'to'
+                        });
+                        incomingCounts.set(targetId, (incomingCounts.get(targetId) || 0) + 1);
+                        if (!ghostLabels.has(targetId)) {
+                            ghostLabels.set(targetId, targetOriginal);
+                        }
+                    }
+                }
+            });
+
+            // Helper to format node based on graphMode preference
+            const applyGraphMode = (label, id, defaultSize) => {
+                let finalSize = defaultSize;
+                const incoming = incomingCounts.get(id) || 0;
+
+                if (incoming > 0) {
+                    if (graphMode === 'size') {
+                        finalSize = defaultSize + (incoming * 4); // Grow by 4px per link
+                    } else if (graphMode === 'number') {
+                        // Ensure node is at least large enough to fit the drawn number
+                        finalSize = Math.max(defaultSize, 14);
+                    }
+                }
+                return { label: label, size: finalSize }; // Keep the label normal
+            };
+
+            // PASS 2: Add real nodes
+            notes.forEach(note => {
+                const originalTitle = note.title.trim();
+                if (!originalTitle) return;
+                const id = originalTitle.toLowerCase();
+
+                const folder = note.folderId ? folders.find(f => f.id === note.folderId) : null;
+                const nodeBg = folder ? folder.color : defaultNodeBg;
+                const nodeBorder = folder ? folder.color : defaultNodeBorder;
+
+                if (!addedNodes.has(id)) {
+                    const { label, size } = applyGraphMode(originalTitle, id, 15);
+                    nodesData.push({
+                        id: id,
+                        label: label,
+                        color: { background: nodeBg, border: nodeBorder },
+                        font: { color: nodeText },
+                        shape: 'dot',
+                        size: size,
+                        originalLabel: originalTitle // Important for clicking navigation
+                    });
+                    addedNodes.add(id);
+                }
+            });
+
+            // PASS 3: Add ghost nodes
+            edgesData.forEach(edge => {
+                const targetId = edge.to;
+                if (!addedNodes.has(targetId)) {
+                    const targetOriginal = ghostLabels.get(targetId) || targetId;
+                    const { label, size } = applyGraphMode(targetOriginal, targetId, 10);
+
+                    nodesData.push({
+                        id: targetId,
+                        label: label,
+                        color: { background: ghostBg, border: ghostBg },
+                        font: { color: ghostText },
+                        shape: 'dot',
+                        size: size,
+                        originalLabel: targetOriginal
+                    });
+                    addedNodes.add(targetId);
+                }
+            });
+
+            const data = {
+                nodes: new vis.DataSet(nodesData),
+                edges: new vis.DataSet(edgesData)
+            };
+
+            const options = {
+                physics: {
+                    barnesHut: {
+                        gravitationalConstant: -2000,
+                        centralGravity: 0.1,
+                        springLength: 150,
+                        springConstant: 0.04,
+                        damping: 0.09
+                    },
+                    stabilization: { iterations: 100 }
+                },
+                interaction: {
+                    hover: true,
+                    zoomView: true,
+                    dragView: true
+                }
+            };
+
+            // If a network already exists, destroy it before remaking
+            if(network !== null) {
+                network.destroy();
+                network = null;
+            }
+
+            network = new vis.Network(container, data, options);
+
+            // Click events
+            network.on("doubleClick", function (params) {
+                if (params.nodes.length > 0) {
+                    const clickedNodeId = params.nodes[0];
+                    // Find the original label to handle the link properly
+                    const nodeObj = nodesData.find(n => n.id === clickedNodeId);
+                    if (nodeObj) {
+                        handleWikiLink(null, nodeObj.originalLabel);
+                    }
+                }
+            });
+
+            // Draw numbers ON the nodes if mode is 'number'
+            network.on("afterDrawing", function (ctx) {
+                if (graphMode !== 'number') return;
+
+                const positions = network.getPositions();
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.font = 'bold 12px sans-serif';
+
+                nodesData.forEach(node => {
+                    const incoming = incomingCounts.get(node.id) || 0;
+                    if (incoming > 0) {
+                        const pos = positions[node.id];
+                        if (pos) {
+                            // Draw a dark outline so the text is readable on any folder/node color
+                            ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+                            ctx.lineWidth = 2.5;
+                            ctx.strokeText(incoming.toString(), pos.x, pos.y);
+
+                            // Draw the white text
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillText(incoming.toString(), pos.x, pos.y);
+                        }
+                    }
+                });
+            });
+        }
+
+        /* =========================================
+           EDITOR FORMATTING
+           ========================================= */
+        function insertFormat(prefix, suffix) {
+            const start = elEditor.selectionStart;
+            const end = elEditor.selectionEnd;
+            const selectedText = elEditor.value.substring(start, end);
+
+            const replacement = prefix + selectedText + suffix;
+
+            // Use setRangeText to modify text while preserving the browser's undo history
+            elEditor.setRangeText(replacement, start, end, 'select');
+
+            // Adjust the cursor/selection position after inserting
+            if (start === end) {
+                // If nothing was selected, put the cursor between the formatting tags
+                elEditor.selectionStart = start + prefix.length;
+                elEditor.selectionEnd = start + prefix.length;
+            } else {
+                // If text was selected, keep the text itself selected inside the formatting tags
+                elEditor.selectionStart = start + prefix.length;
+                elEditor.selectionEnd = start + prefix.length + selectedText.length;
+            }
+
+            elEditor.focus();
+            triggerSave();
+        }
+
+        /* =========================================
+           UI HELPERS
+           ========================================= */
+        function toggleMenu() {
+            const menu = document.getElementById('dropdown-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById('dropdown-menu').classList.add('hidden'); // Close dropdown
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const menuBtn = document.getElementById('menu-btn');
+            const dropdown = document.getElementById('dropdown-menu');
+            if (menuBtn && dropdown) {
+                if (!menuBtn.contains(event.target) && !dropdown.contains(event.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            }
+        });
+
+        function switchView(view) {
+            // Hide all views
+            document.getElementById('view-edit').classList.add('hidden');
+            document.getElementById('view-preview').classList.add('hidden');
+            document.getElementById('view-graph').classList.add('hidden');
+
+            // Reset button states
+            ['btn-edit', 'btn-preview', 'btn-graph'].forEach(id => {
+                const btn = document.getElementById(id);
+                btn.className = 'px-3 py-1.5 text-sm rounded-md text-gray-400 hover:text-gray-200 transition-colors flex items-center gap-1';
+            });
+
+            // Show selected view
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+
+            // Style active button
+            const activeBtn = document.getElementById(`btn-${view}`);
+            activeBtn.className = 'px-3 py-1.5 text-sm rounded-md bg-gray-700 text-gray-100 font-medium transition-colors flex items-center gap-1';
+
+            if (view === 'preview') {
+                updatePreview();
+            } else if (view === 'graph') {
+                saveCurrentNote().then(() => renderGraph());
+            } else if (view === 'edit') {
+                elEditor.focus();
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+
+        /* =========================================
+           SETTINGS & EASE OF LIFE (THEME/EXPORT)
+           ========================================= */
+        function loadSettings() {
+            // Theme
+            const savedTheme = localStorage.getItem('nexus_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            const themeSelect = document.getElementById('theme-select');
+            if (themeSelect) themeSelect.value = savedTheme;
+
+            // Graph Mode
+            const savedGraphMode = localStorage.getItem('nexus_graph_mode') || 'size';
+            const graphModeSelect = document.getElementById('graph-mode-select');
+            if (graphModeSelect) graphModeSelect.value = savedGraphMode;
+        }
+
+        function changeTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('nexus_theme', theme);
+
+            // Re-render Graph to pick up new colors if it is currently open
+            if (!document.getElementById('view-graph').classList.contains('hidden')) {
+                renderGraph();
+            }
+        }
+
+        function changeGraphMode(mode) {
+            localStorage.setItem('nexus_graph_mode', mode);
+            if (!document.getElementById('view-graph').classList.contains('hidden')) {
+                renderGraph();
+            }
+        }
+
+        function exportData() {
+            // Package both notes and folders for export
+            const dataToExport = { notes: notes, folders: folders };
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+            const exportFileDefaultName = 'nexus_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    let importedNotes = [];
+                    let importedFolders = [];
+
+                    // Backward compatibility check for older backups
+                    if (Array.isArray(importedData)) {
+                        importedNotes = importedData;
+                    } else if (importedData.notes) {
+                        importedNotes = importedData.notes;
+                        importedFolders = importedData.folders || [];
+                    } else {
+                        throw new Error("Invalid backup format.");
+                    }
+
+                    // Import Folders First
+                    for (const f of importedFolders) {
+                        if (f.id && f.name) {
+                            const existingIdx = folders.findIndex(fold => fold.id === f.id);
+                            if (existingIdx !== -1) folders[existingIdx] = f;
+                            else folders.push(f);
+                            await saveFolderDB(f);
+                        }
+                    }
+
+                    let importCount = 0;
+                    for (const note of importedNotes) {
+                        if (note.id && note.title && typeof note.content === 'string') {
+                            // Merge/Overwrite existing notes or add new
+                            const existingIdx = notes.findIndex(n => n.id === note.id);
+                            if (existingIdx !== -1) {
+                                notes[existingIdx] = note;
+                            } else {
+                                notes.push(note);
+                            }
+                            await saveNoteDB(note);
+                            importCount++;
+                        }
+                    }
+
+                    customAlert(`Successfully imported ${importCount} notes and ${importedFolders.length} folders!`);
+
+                    // Refresh view
+                    updateFolderSelect();
+                    renderSidebar();
+                    if (notes.length > 0) openNote(notes[0].id);
+                    if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
+
+                } catch (err) {
+                    customAlert("Error importing data. Please ensure it's a valid Nexus JSON backup file.");
+                    console.error(err);
+                }
+                // Reset file input so you can select the same file twice if needed
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+            closeModal('modal-settings');
+        }
+
+        function customAlert(message) {
+            const overlay = document.createElement('div');
+            overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+
+            const box = document.createElement('div');
+            box.className = 'bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4';
+
+            const text = document.createElement('p');
+            text.className = 'text-gray-200 mb-6 text-center';
+            text.textContent = message;
+
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'flex justify-end';
+
+            const okBtn = document.createElement('button');
+            okBtn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition';
+            okBtn.textContent = 'OK';
+            okBtn.onclick = () => document.body.removeChild(overlay);
+
+            btnContainer.appendChild(okBtn);
+            box.appendChild(text);
+            box.appendChild(btnContainer);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+        }
+
+        // Run Init
+        window.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
