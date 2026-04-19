@@ -234,7 +234,12 @@
                     <button onclick="insertFormat('[[', ']]')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Wiki Link"><span class="font-bold text-xs">[[ ]]</span></button>
                 </div>
 
-                <textarea id="editor" oninput="triggerSave()" class="flex-1 w-full bg-gray-900 text-gray-300 p-6 md:p-8 resize-none text-lg leading-relaxed font-mono focus:outline-none" placeholder="Start typing here... Use [[brackets]] to link to other pages."></textarea>
+                <div class="relative flex-1 w-full flex flex-col min-h-0 overflow-hidden">
+                    <textarea id="editor" oninput="handleEditorInput()" class="flex-1 w-full h-full bg-gray-900 text-gray-300 p-6 md:p-8 resize-none text-lg leading-relaxed font-mono focus:outline-none" placeholder="Start typing here... Use [[brackets]] to link to other pages."></textarea>
+
+                    <!-- Autocomplete Menu -->
+                    <ul id="autocomplete-menu" class="hidden absolute z-50 bg-gray-800 border border-gray-600 rounded-md shadow-2xl max-h-48 overflow-y-auto text-sm w-64 list-none p-0 m-0 text-gray-200"></ul>
+                </div>
             </div>
 
             <!-- Preview View -->
@@ -448,6 +453,14 @@
         let currentNoteId = null;
         let saveTimeout = null;
         let network = null; // Vis-network instance
+
+        let autocompleteState = {
+            active: false,
+            query: '',
+            startIndex: -1,
+            selectedIndex: 0,
+            matches: []
+        };
 
         // Elements
         const elNotesList = document.getElementById('notes-list');
@@ -742,6 +755,12 @@
 
             renderSidebar(); // Update active state
             updatePreview(); // Ensure preview matches loaded text if we switch to it
+            closeAutocomplete();
+        }
+
+        function handleEditorInput() {
+            triggerSave();
+            checkAutocomplete();
         }
 
         function triggerSave() {
@@ -818,6 +837,157 @@
                 overlay.appendChild(box);
                 document.body.appendChild(overlay);
             });
+        }
+
+        /* =========================================
+           AUTOCOMPLETE WIKI LINKS
+           ========================================= */
+
+        elEditor.addEventListener('keydown', function(e) {
+            if (!autocompleteState.active) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                autocompleteState.selectedIndex = (autocompleteState.selectedIndex + 1) % autocompleteState.matches.length;
+                renderAutocomplete();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                autocompleteState.selectedIndex = (autocompleteState.selectedIndex - 1 + autocompleteState.matches.length) % autocompleteState.matches.length;
+                renderAutocomplete();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                selectAutocomplete();
+            } else if (e.key === 'Escape') {
+                closeAutocomplete();
+            }
+        });
+
+        // Close when clicking away
+        elEditor.addEventListener('blur', () => {
+            setTimeout(closeAutocomplete, 150); // slight delay to allow clicks to register
+        });
+
+        function checkAutocomplete() {
+            const cursorPosition = elEditor.selectionStart;
+            const textToCursor = elEditor.value.substring(0, cursorPosition);
+
+            // Match [[ followed by anything except brackets
+            const match = textToCursor.match(/\[\[([^\]\[]*)$/);
+
+            if (match) {
+                const query = match[1];
+                const startIndex = match.index;
+
+                const matches = notes.filter(n => n.title.toLowerCase().includes(query.toLowerCase()));
+
+                if (matches.length > 0) {
+                    autocompleteState.active = true;
+                    autocompleteState.query = query;
+                    autocompleteState.startIndex = startIndex;
+                    autocompleteState.matches = matches;
+                    autocompleteState.selectedIndex = Math.min(autocompleteState.selectedIndex, matches.length - 1);
+                    if(autocompleteState.selectedIndex < 0) autocompleteState.selectedIndex = 0;
+
+                    showAutocomplete(cursorPosition);
+                    return;
+                }
+            }
+
+            closeAutocomplete();
+        }
+
+        function showAutocomplete(cursorPosition) {
+            const menu = document.getElementById('autocomplete-menu');
+            renderAutocomplete();
+
+            const coords = getCaretCoordinates(elEditor, cursorPosition);
+            menu.style.left = Math.min(coords.left, elEditor.clientWidth - 260) + 'px'; // Keep on screen
+            menu.style.top = (coords.top + 24) + 'px'; // Below cursor
+            menu.classList.remove('hidden');
+        }
+
+        function renderAutocomplete() {
+            const menu = document.getElementById('autocomplete-menu');
+            menu.innerHTML = '';
+
+            autocompleteState.matches.forEach((note, index) => {
+                const li = document.createElement('li');
+                li.className = `px-3 py-2 cursor-pointer border-b border-gray-700 truncate ${index === autocompleteState.selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-gray-700'}`;
+                li.textContent = note.title;
+                li.onmousedown = (e) => {
+                    e.preventDefault(); // Prevent text area blur
+                    autocompleteState.selectedIndex = index;
+                    selectAutocomplete();
+                };
+                menu.appendChild(li);
+            });
+
+            const selectedItem = menu.children[autocompleteState.selectedIndex];
+            if (selectedItem) selectedItem.scrollIntoView({ block: 'nearest' });
+        }
+
+        function closeAutocomplete() {
+            autocompleteState.active = false;
+            document.getElementById('autocomplete-menu').classList.add('hidden');
+        }
+
+        function selectAutocomplete() {
+            const selectedNote = autocompleteState.matches[autocompleteState.selectedIndex];
+            if (!selectedNote) return;
+
+            const text = elEditor.value;
+            const insertText = `[[${selectedNote.title}]]`;
+
+            const before = text.substring(0, autocompleteState.startIndex);
+            const after = text.substring(elEditor.selectionStart);
+
+            elEditor.value = before + insertText + after;
+
+            const newCursorPos = before.length + insertText.length;
+            elEditor.selectionStart = newCursorPos;
+            elEditor.selectionEnd = newCursorPos;
+
+            closeAutocomplete();
+            triggerSave();
+            elEditor.focus();
+        }
+
+        // Helper to find cursor pixel coordinates inside textarea
+        function getCaretCoordinates(element, position) {
+            const div = document.createElement('div');
+            const style = div.style;
+            const computed = window.getComputedStyle ? getComputedStyle(element) : element.currentStyle;
+
+            style.whiteSpace = 'pre-wrap';
+            style.wordWrap = 'break-word';
+            style.position = 'absolute';
+            style.top = '0';
+            style.left = '-9999px';
+            style.visibility = 'hidden';
+
+            const properties = [
+                'direction', 'boxSizing', 'width', 'height', 'overflowX', 'overflowY',
+                'borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth',
+                'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
+                'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight', 'fontFamily',
+                'textAlign', 'textTransform', 'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing'
+            ];
+
+            properties.forEach(prop => { style[prop] = computed[prop]; });
+            element.parentNode.appendChild(div);
+
+            div.textContent = element.value.substring(0, position);
+            const span = document.createElement('span');
+            span.textContent = element.value.substring(position) || '.';
+            div.appendChild(span);
+
+            const coordinates = {
+                top: span.offsetTop + parseInt(computed.borderTopWidth) - element.scrollTop,
+                left: span.offsetLeft + parseInt(computed.borderLeftWidth) - element.scrollLeft
+            };
+
+            element.parentNode.removeChild(div);
+            return coordinates;
         }
 
         /* =========================================
