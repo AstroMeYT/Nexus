@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" type="image/x-icon" href="/Nexus-logo.ico">
-    <title>Nexus - Local Knowledge Base</title>
-
+    <title>WebNote - Local Knowledge Base</title>
+    
     <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-
+    
     <!-- Marked.js for Markdown parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+    
     <!-- Vis-Network for the Graph/Spiderweb view -->
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 
@@ -25,16 +24,16 @@
             height: 8px;
         }
         ::-webkit-scrollbar-track {
-            background: #1f2937;
+            background: #1f2937; 
         }
         ::-webkit-scrollbar-thumb {
-            background: #4b5563;
+            background: #4b5563; 
             border-radius: 4px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+            background: #6b7280; 
         }
-
+        
         /* Make the vis-network graph fill its container */
         #graph-container canvas {
             outline: none;
@@ -84,15 +83,15 @@
         [data-theme]:not([data-theme="dark"]) .bg-gray-700 { background-color: var(--bg-700) !important; }
         [data-theme]:not([data-theme="dark"]) .hover\:bg-gray-800:hover { background-color: var(--bg-800) !important; }
         [data-theme]:not([data-theme="dark"]) .hover\:bg-gray-700:hover { background-color: var(--bg-700) !important; }
-
+        
         [data-theme]:not([data-theme="dark"]) .border-gray-700,
         [data-theme]:not([data-theme="dark"]) .border-gray-600 { border-color: var(--border-color) !important; }
         [data-theme]:not([data-theme="dark"]) .focus\:border-gray-600:focus { border-color: var(--text-400) !important; }
-
+        
         [data-theme]:not([data-theme="dark"]) .text-gray-100,
         [data-theme]:not([data-theme="dark"]) .text-white,
         [data-theme]:not([data-theme="dark"]) .text-gray-200 { color: var(--text-100) !important; }
-
+        
         [data-theme]:not([data-theme="dark"]) .text-gray-300 { color: var(--text-300) !important; }
         [data-theme]:not([data-theme="dark"]) .text-gray-400 { color: var(--text-400) !important; }
         [data-theme]:not([data-theme="dark"]) .text-gray-500 { color: var(--text-500) !important; }
@@ -128,7 +127,7 @@
     <!-- Sidebar (List of Notes) -->
     <aside id="sidebar" class="w-64 bg-gray-800 border-r border-gray-700 flex flex-col absolute md:relative z-40 h-full transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
         <div class="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-800 pt-16 md:pt-4">
-            <h1 class="text-xl font-bold text-gray-100 tracking-wider">NEXUS</h1>
+            <h1 class="text-xl font-bold text-gray-100 tracking-wider">WEBNOTE</h1>
             <div class="flex gap-1">
                 <button onclick="createNewFolder()" class="p-1.5 bg-gray-700 hover:bg-gray-600 rounded text-gray-200 transition-colors" title="New Folder">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10.5v6m3-3H9m4.06-7.19-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z"></path></svg>
@@ -138,7 +137,7 @@
                 </button>
             </div>
         </div>
-
+        
         <div class="p-3">
             <div class="relative">
                 <input type="text" id="search-input" onkeyup="filterNotes()" placeholder="Search notes..." class="w-full bg-gray-900 text-sm text-gray-200 border border-gray-700 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 transition-colors">
@@ -148,7 +147,7 @@
         <ul id="notes-list" class="flex-1 overflow-y-auto p-2 space-y-1">
             <!-- Notes will be injected here via JS -->
         </ul>
-
+        
         <div class="p-4 text-xs text-gray-500 border-t border-gray-700 text-center">
             Saved locally via IndexedDB
         </div>
@@ -156,7 +155,7 @@
 
     <!-- Main Workspace -->
     <main class="flex-1 flex flex-col h-full bg-gray-900 relative">
-
+        
         <!-- Top Toolbar -->
         <header class="h-14 border-b border-gray-700 flex items-center justify-between px-4 lg:px-6 pl-16 md:pl-6 bg-gray-900 z-10">
             <div class="flex-1 max-w-2xl flex items-center gap-3">
@@ -165,7 +164,7 @@
                 </select>
                 <input type="text" id="note-title" oninput="triggerSave()" placeholder="Note Title" class="w-full bg-transparent text-xl font-semibold text-gray-100 placeholder-gray-600 focus:outline-none border-b border-transparent focus:border-gray-600 px-1 py-1">
             </div>
-
+            
             <div class="flex items-center space-x-2 ml-4">
                 <!-- View Toggles -->
                 <div class="flex bg-gray-800 rounded-md p-1 border border-gray-700">
@@ -176,7 +175,7 @@
                         Graph
                     </button>
                 </div>
-
+                
                 <button onclick="deleteCurrentNote()" class="p-2 text-gray-500 hover:text-red-400 transition-colors rounded-md hover:bg-gray-800" title="Delete Note">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
@@ -198,24 +197,24 @@
 
         <!-- Content Areas -->
         <div class="flex-1 overflow-hidden relative">
-
+            
             <!-- Editor View -->
             <div id="view-edit" class="absolute inset-0 h-full w-full flex flex-col bg-gray-900">
-
+                
                 <!-- Formatting Toolbar -->
                 <div class="h-10 bg-gray-800 border-b border-gray-700 flex items-center px-4 gap-1 md:gap-2 overflow-x-auto text-gray-300 select-none shrink-0">
                     <button onclick="insertFormat('**', '**')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Bold"><span class="font-bold font-serif">B</span></button>
                     <button onclick="insertFormat('_', '_')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Italic"><span class="italic font-serif">I</span></button>
                     <button onclick="insertFormat('~~', '~~')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Strikethrough"><span class="line-through font-serif text-sm">S</span></button>
-
+                    
                     <div class="w-px h-5 bg-gray-600 mx-1"></div>
-
+                    
                     <button onclick="insertFormat('# ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 1"><span class="font-bold text-xs">H1</span></button>
                     <button onclick="insertFormat('## ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 2"><span class="font-bold text-xs">H2</span></button>
                     <button onclick="insertFormat('### ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Heading 3"><span class="font-bold text-xs">H3</span></button>
-
+                    
                     <div class="w-px h-5 bg-gray-600 mx-1"></div>
-
+                    
                     <button onclick="insertFormat('- ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Bullet List">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"></path></svg>
                     </button>
@@ -223,9 +222,9 @@
                     <button onclick="insertFormat('> ', '')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Quote">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path></svg>
                     </button>
-
+                    
                     <div class="w-px h-5 bg-gray-600 mx-1"></div>
-
+                    
                     <button onclick="insertFormat('`', '`')" class="p-1.5 hover:bg-gray-700 hover:text-white rounded transition-colors flex items-center justify-center min-w-[30px]" title="Inline Code">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
                     </button>
@@ -237,7 +236,7 @@
 
                 <div class="relative flex-1 w-full flex flex-col min-h-0 overflow-hidden">
                     <textarea id="editor" oninput="handleEditorInput()" class="flex-1 w-full h-full bg-gray-900 text-gray-300 p-6 md:p-8 resize-none text-lg leading-relaxed font-mono focus:outline-none" placeholder="Start typing here... Use [[brackets]] to link to other pages."></textarea>
-
+                    
                     <!-- Autocomplete Menu -->
                     <ul id="autocomplete-menu" class="hidden absolute z-50 bg-gray-800 border border-gray-600 rounded-md shadow-2xl max-h-48 overflow-y-auto text-sm w-64 list-none p-0 m-0 text-gray-200"></ul>
                 </div>
@@ -254,14 +253,14 @@
             <div id="view-graph" class="absolute inset-0 h-full w-full hidden bg-gray-950">
                 <div id="graph-container" class="w-full h-full"></div>
             </div>
-
+            
         </div>
     </main>
 
     <!-- Modals -->
     <div id="modal-how-to" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
         <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full border border-gray-700 mx-4">
-            <h2 class="text-xl font-bold text-white mb-4">How to Use Nexus</h2>
+            <h2 class="text-xl font-bold text-white mb-4">How to Use WebNote</h2>
             <ul class="text-gray-300 space-y-3 mb-6 list-disc pl-5 text-sm">
                 <li>Write your notes using <strong>Markdown</strong> formatting.</li>
                 <li>Link concepts together using double brackets: <code class="bg-gray-900 px-1 rounded text-blue-400">[[Ideas]]</code> or <code class="bg-gray-900 px-1 rounded text-blue-400">[[Projects]]</code>.</li>
@@ -282,7 +281,7 @@
                 <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 Settings
             </h2>
-
+            
             <div class="space-y-4 mb-6">
                 <!-- Theme Selection -->
                 <div>
@@ -332,8 +331,8 @@
 
     <div id="modal-about" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
         <div class="bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4">
-            <h2 class="text-xl font-bold text-white mb-4">About Nexus</h2>
-            <p class="text-gray-300 mb-6 text-sm">Nexus is a local, private knowledge base running entirely in your browser without requiring external servers.</p>
+            <h2 class="text-xl font-bold text-white mb-4">About WebNote</h2>
+            <p class="text-gray-300 mb-6 text-sm">WebNote is a local, private knowledge base running entirely in your browser without requiring external servers.</p>
             <div class="flex justify-end">
                 <button onclick="closeModal('modal-about')" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition">Close</button>
             </div>
@@ -371,7 +370,7 @@
         /* =========================================
            INDEXEDDB WRAPPER FOR LOCAL STORAGE
            ========================================= */
-        const DB_NAME = 'NexusKnowledgeBase';
+        const DB_NAME = 'WebNoteKnowledgeBase';
         const DB_VERSION = 2; // Upgraded to v2 for folders
         const STORE_NAME = 'notes';
         const FOLDER_STORE = 'folders';
@@ -454,7 +453,7 @@
         let currentNoteId = null;
         let saveTimeout = null;
         let network = null; // Vis-network instance
-
+        
         let autocompleteState = {
             active: false,
             query: '',
@@ -476,7 +475,7 @@
                 await initDB();
                 notes = await getAllNotes();
                 folders = await getAllFolders();
-
+                
                 // Sort notes by updated time descending
                 notes.sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -496,9 +495,9 @@
         function createDefaultNote() {
             const defaultNote = {
                 id: Date.now().toString(),
-                title: "Welcome to Nexus",
+                title: "Welcome to WebNote",
                 folderId: null,
-                content: "# Welcome to Nexus 🪐\n\nThis is your local, private knowledge base.\n\nOpen the **Menu** (the three dots icon in the top right corner) and click **How to Use** to learn more about Markdown, linking pages, and the graph view.",
+                content: "# Welcome to WebNote 🪐\n\nThis is your local, private knowledge base.\n\nOpen the **Menu** (the three dots icon in the top right corner) and click **How to Use** to learn more about Markdown, linking pages, and the graph view.",
                 updatedAt: Date.now()
             };
             notes.push(defaultNote);
@@ -511,7 +510,7 @@
         // Sidebar Rendering
         function renderSidebar(filterText = '') {
             elNotesList.innerHTML = '';
-
+            
             // Sort by Pinned first, then by Last Updated
             const sortedNotes = [...notes].sort((a, b) => {
                 const aPinned = !!a.pinned;
@@ -520,16 +519,16 @@
                 if (!aPinned && bPinned) return 1;
                 return b.updatedAt - a.updatedAt;
             });
-
+            
             // Helper function to create note items (draggable)
             const createNoteItem = (note) => {
                 const li = document.createElement('li');
                 const isSelected = note.id === currentNoteId;
                 const isPinned = !!note.pinned;
-
+                
                 li.className = `group flex items-center justify-between px-3 py-1.5 rounded-md cursor-pointer transition-colors text-sm border-l-2 ${isSelected ? 'bg-blue-600 text-white border-blue-400' : 'text-gray-300 hover:bg-gray-700 hover:text-white border-transparent'}`;
                 li.draggable = true;
-
+                
                 // Drag start event
                 li.ondragstart = (e) => {
                     e.dataTransfer.setData('text/plain', note.id);
@@ -538,7 +537,7 @@
                 li.ondragend = (e) => {
                     e.currentTarget.classList.remove('opacity-50');
                 };
-
+                
                 li.onclick = (e) => {
                     e.stopPropagation();
                     openNote(note.id);
@@ -554,12 +553,12 @@
                 pinBtn.className = `ml-2 p-0.5 rounded transition-opacity flex-shrink-0 ${isPinned ? (isSelected ? 'text-white opacity-100' : 'text-blue-400 opacity-100') : 'text-gray-500 opacity-0 group-hover:opacity-100 hover:text-gray-300'}`;
                 pinBtn.title = isPinned ? "Unpin note" : "Pin note";
                 pinBtn.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="17" x2="12" y2="22"></line><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"></path></svg>`;
-
+                
                 pinBtn.onclick = async (e) => {
                     e.stopPropagation(); // Don't trigger the li.onclick navigation
                     note.pinned = !note.pinned;
                     await saveNoteDB(note);
-
+                    
                     const filterVal = document.getElementById('search-input').value;
                     renderSidebar(filterVal);
                 };
@@ -573,10 +572,10 @@
             // Group notes by folder
             const notesByFolder = { unassigned: [] };
             folders.forEach(f => notesByFolder[f.id] = []);
-
+            
             sortedNotes.forEach(note => {
                 if (filterText && !note.title.toLowerCase().includes(filterText.toLowerCase())) return;
-
+                
                 if (note.folderId && notesByFolder[note.folderId]) {
                     notesByFolder[note.folderId].push(note);
                 } else {
@@ -588,7 +587,7 @@
             folders.forEach(folder => {
                 const folderWrapper = document.createElement('div');
                 folderWrapper.className = 'mb-3';
-
+                
                 // Folder drop target events
                 folderWrapper.ondragover = (e) => { e.preventDefault(); folderWrapper.classList.add('bg-gray-700', 'bg-opacity-50', 'rounded'); };
                 folderWrapper.ondragleave = () => { folderWrapper.classList.remove('bg-gray-700', 'bg-opacity-50', 'rounded'); };
@@ -596,16 +595,16 @@
 
                 const folderHeader = document.createElement('div');
                 folderHeader.className = 'flex items-center justify-between text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 px-2 group';
-
+                
                 const titleSpan = document.createElement('span');
                 titleSpan.className = 'flex items-center gap-1.5 truncate';
                 titleSpan.innerHTML = `<span class="w-2.5 h-2.5 rounded-full inline-block" style="background-color: ${folder.color}"></span> ${folder.name}`;
-
+                
                 const editBtn = document.createElement('button');
                 editBtn.className = 'hidden group-hover:block text-gray-400 hover:text-white p-0.5';
                 editBtn.innerHTML = `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
                 editBtn.onclick = () => openFolderModal(folder.id);
-
+                
                 folderHeader.appendChild(titleSpan);
                 folderHeader.appendChild(editBtn);
                 folderWrapper.appendChild(folderHeader);
@@ -613,14 +612,14 @@
                 const ul = document.createElement('ul');
                 ul.className = 'space-y-0.5 ml-2 border-l border-gray-700 pl-2';
                 notesByFolder[folder.id].forEach(note => ul.appendChild(createNoteItem(note)));
-
+                
                 if (notesByFolder[folder.id].length === 0) {
                     const emptyLi = document.createElement('li');
                     emptyLi.className = 'text-xs text-gray-600 italic px-3 py-1';
                     emptyLi.textContent = 'Empty folder';
                     ul.appendChild(emptyLi);
                 }
-
+                
                 folderWrapper.appendChild(ul);
                 elNotesList.appendChild(folderWrapper);
             });
@@ -628,7 +627,7 @@
             // Render Unassigned Notes
             if (notesByFolder.unassigned.length > 0 || folders.length > 0) {
                 const unassignedWrapper = document.createElement('div');
-
+                
                 // Allow dropping back to unassigned
                 unassignedWrapper.ondragover = (e) => { e.preventDefault(); unassignedWrapper.classList.add('bg-gray-700', 'bg-opacity-50', 'rounded'); };
                 unassignedWrapper.ondragleave = () => { unassignedWrapper.classList.remove('bg-gray-700', 'bg-opacity-50', 'rounded'); };
@@ -640,11 +639,11 @@
                     header.textContent = 'Uncategorized';
                     unassignedWrapper.appendChild(header);
                 }
-
+                
                 const ul = document.createElement('ul');
                 ul.className = 'space-y-0.5';
                 notesByFolder.unassigned.forEach(note => ul.appendChild(createNoteItem(note)));
-
+                
                 unassignedWrapper.appendChild(ul);
                 elNotesList.appendChild(unassignedWrapper);
             }
@@ -683,7 +682,7 @@
                 opt.textContent = f.name;
                 select.appendChild(opt);
             });
-
+            
             // Re-select current note's folder if any
             if (currentNoteId) {
                 const currentNote = notes.find(n => n.id === currentNoteId);
@@ -707,12 +706,12 @@
         function openFolderModal(folderId) {
             const folder = folders.find(f => f.id === folderId);
             if (!folder) return;
-
+            
             document.getElementById('folder-id').value = folder.id;
             document.getElementById('folder-name').value = folder.name;
             document.getElementById('folder-color').value = folder.color;
             document.getElementById('folder-color-hex').textContent = folder.color.toUpperCase();
-
+            
             openModal('modal-folder');
         }
 
@@ -720,13 +719,13 @@
             const id = document.getElementById('folder-id').value;
             const folderIndex = folders.findIndex(f => f.id === id);
             if (folderIndex === -1) return;
-
+            
             folders[folderIndex].name = document.getElementById('folder-name').value.trim() || 'Untitled Folder';
             folders[folderIndex].color = document.getElementById('folder-color').value;
-
+            
             await saveFolderDB(folders[folderIndex]);
             closeModal('modal-folder');
-
+            
             updateFolderSelect();
             renderSidebar();
             if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
@@ -739,7 +738,7 @@
 
             await deleteFolderDB(id);
             folders = folders.filter(f => f.id !== id);
-
+            
             // Unassign notes in this folder
             for (let note of notes) {
                 if (note.folderId === id) {
@@ -747,7 +746,7 @@
                     await saveNoteDB(note);
                 }
             }
-
+            
             closeModal('modal-folder');
             updateFolderSelect();
             renderSidebar();
@@ -765,10 +764,10 @@
             };
             notes.push(newNote);
             await saveNoteDB(newNote);
-
+            
             // Clear search when creating new
             document.getElementById('search-input').value = '';
-
+            
             renderSidebar();
             openNote(newNote.id);
             switchView('edit');
@@ -783,7 +782,7 @@
             elNoteTitle.value = note.title;
             elEditor.value = note.content;
             document.getElementById('note-folder-select').value = note.folderId || '';
-
+            
             renderSidebar(); // Update active state
             updatePreview(); // Ensure preview matches loaded text if we switch to it
             closeAutocomplete();
@@ -801,7 +800,7 @@
 
         async function saveCurrentNote() {
             if (!currentNoteId) return;
-
+            
             const noteIndex = notes.findIndex(n => n.id === currentNoteId);
             if (noteIndex === -1) return;
 
@@ -811,7 +810,7 @@
             notes[noteIndex].updatedAt = Date.now();
 
             await saveNoteDB(notes[noteIndex]);
-
+            
             // Re-render sidebar to reflect title changes or sorting updates
             const filterVal = document.getElementById('search-input').value;
             renderSidebar(filterVal);
@@ -820,14 +819,14 @@
 
         async function deleteCurrentNote() {
             if (!currentNoteId) return;
-
+            
             // Create a custom modern modal instead of standard confirm()
             const confirmDelete = await customConfirm("Are you sure you want to delete this note?");
             if (!confirmDelete) return;
 
             await deleteNoteDB(currentNoteId);
             notes = notes.filter(n => n.id !== currentNoteId);
-
+            
             if (notes.length > 0) {
                 openNote(notes[0].id);
             } else {
@@ -840,27 +839,27 @@
             return new Promise((resolve) => {
                 const overlay = document.createElement('div');
                 overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-
+                
                 const box = document.createElement('div');
                 box.className = 'bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700';
-
+                
                 const text = document.createElement('p');
                 text.className = 'text-gray-200 mb-6 text-center';
                 text.textContent = message;
-
+                
                 const btnContainer = document.createElement('div');
                 btnContainer.className = 'flex justify-end gap-3';
-
+                
                 const cancelBtn = document.createElement('button');
                 cancelBtn.className = 'px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded transition';
                 cancelBtn.textContent = 'Cancel';
                 cancelBtn.onclick = () => { document.body.removeChild(overlay); resolve(false); };
-
+                
                 const confirmBtn = document.createElement('button');
                 confirmBtn.className = 'px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded transition';
                 confirmBtn.textContent = 'Delete';
                 confirmBtn.onclick = () => { document.body.removeChild(overlay); resolve(true); };
-
+                
                 btnContainer.appendChild(cancelBtn);
                 btnContainer.appendChild(confirmBtn);
                 box.appendChild(text);
@@ -873,23 +872,61 @@
         /* =========================================
            AUTOCOMPLETE WIKI LINKS
            ========================================= */
-
+        
         elEditor.addEventListener('keydown', function(e) {
-            if (!autocompleteState.active) return;
+            // Handle Autocomplete interactions
+            if (autocompleteState.active) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    autocompleteState.selectedIndex = (autocompleteState.selectedIndex + 1) % autocompleteState.matches.length;
+                    renderAutocomplete();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    autocompleteState.selectedIndex = (autocompleteState.selectedIndex - 1 + autocompleteState.matches.length) % autocompleteState.matches.length;
+                    renderAutocomplete();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    selectAutocomplete();
+                } else if (e.key === 'Escape') {
+                    closeAutocomplete();
+                }
+                return; // Stop evaluating keys if autocomplete was active
+            }
 
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                autocompleteState.selectedIndex = (autocompleteState.selectedIndex + 1) % autocompleteState.matches.length;
-                renderAutocomplete();
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                autocompleteState.selectedIndex = (autocompleteState.selectedIndex - 1 + autocompleteState.matches.length) % autocompleteState.matches.length;
-                renderAutocomplete();
-            } else if (e.key === 'Enter') {
-                e.preventDefault();
-                selectAutocomplete();
-            } else if (e.key === 'Escape') {
-                closeAutocomplete();
+            // List Auto-continue Feature
+            if (e.key === 'Enter') {
+                const text = elEditor.value;
+                const cursorPos = elEditor.selectionStart;
+                const lineStart = text.lastIndexOf('\n', cursorPos - 1) + 1;
+                const currentLine = text.substring(lineStart, cursorPos);
+                
+                // 1. Check for empty list item (to remove it)
+                const emptyListMatch = currentLine.match(/^(\s*)([-*]|\d+\.)\s+$/);
+                if (emptyListMatch) {
+                    e.preventDefault();
+                    elEditor.setRangeText('', lineStart, cursorPos, 'end');
+                    triggerSave();
+                    return;
+                }
+
+                // 2. Check for populated list item (to continue it)
+                const listMatch = currentLine.match(/^(\s*)([-*]|\d+\.)\s+/);
+                if (listMatch) {
+                    e.preventDefault();
+                    const prefix = listMatch[2];
+                    let nextPrefix = prefix;
+                    
+                    // Increment if it's a number
+                    if (/^\d+\.$/.test(prefix)) {
+                        const num = parseInt(prefix, 10);
+                        nextPrefix = `${num + 1}.`;
+                    }
+
+                    const insertText = `\n${listMatch[1]}${nextPrefix} `;
+                    elEditor.setRangeText(insertText, cursorPos, cursorPos, 'end');
+                    triggerSave();
+                    return;
+                }
             }
         });
 
@@ -901,16 +938,16 @@
         function checkAutocomplete() {
             const cursorPosition = elEditor.selectionStart;
             const textToCursor = elEditor.value.substring(0, cursorPosition);
-
+            
             // Match [[ followed by anything except brackets
             const match = textToCursor.match(/\[\[([^\]\[]*)$/);
-
+            
             if (match) {
                 const query = match[1];
                 const startIndex = match.index;
-
+                
                 const matches = notes.filter(n => n.title.toLowerCase().includes(query.toLowerCase()));
-
+                
                 if (matches.length > 0) {
                     autocompleteState.active = true;
                     autocompleteState.query = query;
@@ -918,19 +955,19 @@
                     autocompleteState.matches = matches;
                     autocompleteState.selectedIndex = Math.min(autocompleteState.selectedIndex, matches.length - 1);
                     if(autocompleteState.selectedIndex < 0) autocompleteState.selectedIndex = 0;
-
+                    
                     showAutocomplete(cursorPosition);
                     return;
                 }
             }
-
+            
             closeAutocomplete();
         }
 
         function showAutocomplete(cursorPosition) {
             const menu = document.getElementById('autocomplete-menu');
             renderAutocomplete();
-
+            
             const coords = getCaretCoordinates(elEditor, cursorPosition);
             menu.style.left = Math.min(coords.left, elEditor.clientWidth - 260) + 'px'; // Keep on screen
             menu.style.top = (coords.top + 24) + 'px'; // Below cursor
@@ -940,7 +977,7 @@
         function renderAutocomplete() {
             const menu = document.getElementById('autocomplete-menu');
             menu.innerHTML = '';
-
+            
             autocompleteState.matches.forEach((note, index) => {
                 const li = document.createElement('li');
                 li.className = `px-3 py-2 cursor-pointer border-b border-gray-700 truncate ${index === autocompleteState.selectedIndex ? 'bg-blue-600 text-white' : 'hover:bg-gray-700'}`;
@@ -952,7 +989,7 @@
                 };
                 menu.appendChild(li);
             });
-
+            
             const selectedItem = menu.children[autocompleteState.selectedIndex];
             if (selectedItem) selectedItem.scrollIntoView({ block: 'nearest' });
         }
@@ -968,16 +1005,16 @@
 
             const text = elEditor.value;
             const insertText = `[[${selectedNote.title}]]`;
-
+            
             const before = text.substring(0, autocompleteState.startIndex);
             const after = text.substring(elEditor.selectionStart);
-
+            
             elEditor.value = before + insertText + after;
-
+            
             const newCursorPos = before.length + insertText.length;
             elEditor.selectionStart = newCursorPos;
             elEditor.selectionEnd = newCursorPos;
-
+            
             closeAutocomplete();
             triggerSave();
             elEditor.focus();
@@ -1003,13 +1040,13 @@
                 'fontStyle', 'fontVariant', 'fontWeight', 'fontStretch', 'fontSize', 'fontSizeAdjust', 'lineHeight', 'fontFamily',
                 'textAlign', 'textTransform', 'textIndent', 'textDecoration', 'letterSpacing', 'wordSpacing'
             ];
-
+            
             properties.forEach(prop => { style[prop] = computed[prop]; });
             element.parentNode.appendChild(div);
 
             div.textContent = element.value.substring(0, position);
             const span = document.createElement('span');
-            span.textContent = element.value.substring(position) || '.';
+            span.textContent = element.value.substring(position) || '.'; 
             div.appendChild(span);
 
             const coordinates = {
@@ -1024,15 +1061,15 @@
         /* =========================================
            WIKI LINKS & MARKDOWN PREVIEW
            ========================================= */
-
+        
         // Handle clicking a [[Link]] inside the preview or graph
         function handleWikiLink(event, targetTitle) {
             if(event) event.preventDefault();
-
+            
             // Look for existing note with exact title (case insensitive)
             const targetTitleLower = targetTitle.toLowerCase().trim();
             const existingNote = notes.find(n => n.title.toLowerCase().trim() === targetTitleLower);
-
+            
             if (existingNote) {
                 openNote(existingNote.id);
                 switchView('preview'); // Keep in preview reading mode
@@ -1044,7 +1081,7 @@
 
         function updatePreview() {
             let rawText = elEditor.value;
-
+            
             // 1. Process wiki links: [[Title]]
             // Replace [[something]] with a styled link that calls handleWikiLink
             const processedText = rawText.replace(/\[\[(.*?)\]\]/g, (match, p1) => {
@@ -1063,11 +1100,11 @@
            ========================================= */
         function renderGraph() {
             const container = document.getElementById('graph-container');
-
+            
             // Get current theme colors from our CSS variables (fallback to dark mode defaults)
             const style = getComputedStyle(document.documentElement);
             const isCustomTheme = document.documentElement.hasAttribute('data-theme') && document.documentElement.getAttribute('data-theme') !== 'dark';
-
+            
             const defaultNodeBg = isCustomTheme ? style.getPropertyValue('--graph-node-bg').trim() : '#2563eb';
             const defaultNodeBorder = isCustomTheme ? style.getPropertyValue('--graph-node-border').trim() : '#1d4ed8';
             const nodeText = isCustomTheme ? style.getPropertyValue('--graph-text').trim() : '#ffffff';
@@ -1081,10 +1118,10 @@
             const edgesData = [];
             const addedNodes = new Set();
             const existingTitles = new Map();
-            const incomingCounts = new Map();
+            const outgoingCounts = new Map(); // Track how many children a page has
             const ghostLabels = new Map();
 
-            // PASS 1: Extract all edges and count incoming links
+            // PASS 1: Extract all edges and count outgoing links
             notes.forEach(note => {
                 const sourceTitle = note.title.trim();
                 if (!sourceTitle) return;
@@ -1102,13 +1139,14 @@
                     // Prevent duplicate edges from the same source to the same target
                     if (!seenTargetsInThisNote.has(targetId)) {
                         seenTargetsInThisNote.add(targetId);
-                        edgesData.push({
-                            from: sourceId,
-                            to: targetId,
+                        edgesData.push({ 
+                            from: sourceId, 
+                            to: targetId, 
                             color: { color: edgeColor },
                             arrows: 'to'
                         });
-                        incomingCounts.set(targetId, (incomingCounts.get(targetId) || 0) + 1);
+                        // Increment the source node's outgoing/child count
+                        outgoingCounts.set(sourceId, (outgoingCounts.get(sourceId) || 0) + 1);
                         if (!ghostLabels.has(targetId)) {
                             ghostLabels.set(targetId, targetOriginal);
                         }
@@ -1119,14 +1157,14 @@
             // Helper to format node based on graphMode preference
             const applyGraphMode = (label, id, defaultSize) => {
                 let finalSize = defaultSize;
-                const incoming = incomingCounts.get(id) || 0;
+                const outgoing = outgoingCounts.get(id) || 0;
 
-                if (incoming > 0) {
+                if (outgoing > 0) {
                     if (graphMode === 'size') {
-                        finalSize = defaultSize + (incoming * 4); // Grow by 4px per link
+                        finalSize = defaultSize + (outgoing * 4); // Grow by 4px per child link
                     } else if (graphMode === 'number') {
                         // Ensure node is at least large enough to fit the drawn number
-                        finalSize = Math.max(defaultSize, 14);
+                        finalSize = Math.max(defaultSize, 14); 
                     }
                 }
                 return { label: label, size: finalSize }; // Keep the label normal
@@ -1144,10 +1182,10 @@
 
                 if (!addedNodes.has(id)) {
                     const { label, size } = applyGraphMode(originalTitle, id, 15);
-                    nodesData.push({
-                        id: id,
-                        label: label,
-                        color: { background: nodeBg, border: nodeBorder },
+                    nodesData.push({ 
+                        id: id, 
+                        label: label, 
+                        color: { background: nodeBg, border: nodeBorder }, 
                         font: { color: nodeText },
                         shape: 'dot',
                         size: size,
@@ -1163,10 +1201,10 @@
                 if (!addedNodes.has(targetId)) {
                     const targetOriginal = ghostLabels.get(targetId) || targetId;
                     const { label, size } = applyGraphMode(targetOriginal, targetId, 10);
-
-                    nodesData.push({
-                        id: targetId,
-                        label: label,
+                    
+                    nodesData.push({ 
+                        id: targetId, 
+                        label: label, 
                         color: { background: ghostBg, border: ghostBg },
                         font: { color: ghostText },
                         shape: 'dot',
@@ -1225,24 +1263,24 @@
                 if (graphMode !== 'number') return;
 
                 const positions = network.getPositions();
-
+                
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.font = 'bold 12px sans-serif';
 
                 nodesData.forEach(node => {
-                    const incoming = incomingCounts.get(node.id) || 0;
-                    if (incoming > 0) {
+                    const outgoing = outgoingCounts.get(node.id) || 0;
+                    if (outgoing > 0) {
                         const pos = positions[node.id];
                         if (pos) {
                             // Draw a dark outline so the text is readable on any folder/node color
                             ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
                             ctx.lineWidth = 2.5;
-                            ctx.strokeText(incoming.toString(), pos.x, pos.y);
-
+                            ctx.strokeText(outgoing.toString(), pos.x, pos.y);
+                            
                             // Draw the white text
                             ctx.fillStyle = '#ffffff';
-                            ctx.fillText(incoming.toString(), pos.x, pos.y);
+                            ctx.fillText(outgoing.toString(), pos.x, pos.y);
                         }
                     }
                 });
@@ -1256,12 +1294,12 @@
             const start = elEditor.selectionStart;
             const end = elEditor.selectionEnd;
             const selectedText = elEditor.value.substring(start, end);
-
+            
             const replacement = prefix + selectedText + suffix;
-
+            
             // Use setRangeText to modify text while preserving the browser's undo history
             elEditor.setRangeText(replacement, start, end, 'select');
-
+            
             // Adjust the cursor/selection position after inserting
             if (start === end) {
                 // If nothing was selected, put the cursor between the formatting tags
@@ -1272,7 +1310,7 @@
                 elEditor.selectionStart = start + prefix.length;
                 elEditor.selectionEnd = start + prefix.length + selectedText.length;
             }
-
+            
             elEditor.focus();
             triggerSave();
         }
@@ -1310,7 +1348,7 @@
             document.getElementById('view-edit').classList.add('hidden');
             document.getElementById('view-preview').classList.add('hidden');
             document.getElementById('view-graph').classList.add('hidden');
-
+            
             // Reset button states
             ['btn-edit', 'btn-preview', 'btn-graph'].forEach(id => {
                 const btn = document.getElementById(id);
@@ -1319,7 +1357,7 @@
 
             // Show selected view
             document.getElementById(`view-${view}`).classList.remove('hidden');
-
+            
             // Style active button
             const activeBtn = document.getElementById(`btn-${view}`);
             activeBtn.className = 'px-3 py-1.5 text-sm rounded-md bg-gray-700 text-gray-100 font-medium transition-colors flex items-center gap-1';
@@ -1347,21 +1385,21 @@
            ========================================= */
         function loadSettings() {
             // Theme
-            const savedTheme = localStorage.getItem('nexus_theme') || 'dark';
+            const savedTheme = localStorage.getItem('webnote_theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
             const themeSelect = document.getElementById('theme-select');
             if (themeSelect) themeSelect.value = savedTheme;
 
             // Graph Mode
-            const savedGraphMode = localStorage.getItem('nexus_graph_mode') || 'size';
+            const savedGraphMode = localStorage.getItem('webnote_graph_mode') || 'size';
             const graphModeSelect = document.getElementById('graph-mode-select');
             if (graphModeSelect) graphModeSelect.value = savedGraphMode;
         }
 
         function changeTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('nexus_theme', theme);
-
+            localStorage.setItem('webnote_theme', theme);
+            
             // Re-render Graph to pick up new colors if it is currently open
             if (!document.getElementById('view-graph').classList.contains('hidden')) {
                 renderGraph();
@@ -1369,7 +1407,7 @@
         }
 
         function changeGraphMode(mode) {
-            localStorage.setItem('nexus_graph_mode', mode);
+            localStorage.setItem('webnote_graph_mode', mode);
             if (!document.getElementById('view-graph').classList.contains('hidden')) {
                 renderGraph();
             }
@@ -1380,8 +1418,8 @@
             const dataToExport = { notes: notes, folders: folders };
             const dataStr = JSON.stringify(dataToExport, null, 2);
             const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-            const exportFileDefaultName = 'nexus_backup_' + new Date().toISOString().slice(0, 10) + '.json';
-
+            const exportFileDefaultName = 'webnote_backup_' + new Date().toISOString().slice(0, 10) + '.json';
+            
             const linkElement = document.createElement('a');
             linkElement.setAttribute('href', dataUri);
             linkElement.setAttribute('download', exportFileDefaultName);
@@ -1398,7 +1436,7 @@
                     const importedData = JSON.parse(e.target.result);
                     let importedNotes = [];
                     let importedFolders = [];
-
+                    
                     // Backward compatibility check for older backups
                     if (Array.isArray(importedData)) {
                         importedNotes = importedData;
@@ -1408,7 +1446,7 @@
                     } else {
                         throw new Error("Invalid backup format.");
                     }
-
+                    
                     // Import Folders First
                     for (const f of importedFolders) {
                         if (f.id && f.name) {
@@ -1433,9 +1471,9 @@
                             importCount++;
                         }
                     }
-
+                    
                     customAlert(`Successfully imported ${importCount} notes and ${importedFolders.length} folders!`);
-
+                    
                     // Refresh view
                     updateFolderSelect();
                     renderSidebar();
@@ -1443,7 +1481,7 @@
                     if (!document.getElementById('view-graph').classList.contains('hidden')) renderGraph();
 
                 } catch (err) {
-                    customAlert("Error importing data. Please ensure it's a valid Nexus JSON backup file.");
+                    customAlert("Error importing data. Please ensure it's a valid WebNote JSON backup file.");
                     console.error(err);
                 }
                 // Reset file input so you can select the same file twice if needed
@@ -1456,22 +1494,22 @@
         function customAlert(message) {
             const overlay = document.createElement('div');
             overlay.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-
+            
             const box = document.createElement('div');
             box.className = 'bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full border border-gray-700 mx-4';
-
+            
             const text = document.createElement('p');
             text.className = 'text-gray-200 mb-6 text-center';
             text.textContent = message;
-
+            
             const btnContainer = document.createElement('div');
             btnContainer.className = 'flex justify-end';
-
+            
             const okBtn = document.createElement('button');
             okBtn.className = 'px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded transition';
             okBtn.textContent = 'OK';
             okBtn.onclick = () => document.body.removeChild(overlay);
-
+            
             btnContainer.appendChild(okBtn);
             box.appendChild(text);
             box.appendChild(btnContainer);
